@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>用 dataMojo R 包开发高效数据分析应用</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="mckpam.css" type="text/css" />
+    <link rel="stylesheet" href="zh-CN.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# 用 dataMojo R 包开发高效数据分析应用
+## 古杰娜
+### 软件架构师 麦肯锡咨询公司
+### 2022/11/13
+
+---
+
+class: middle
+
+# dataMojo R 包  &lt;img src="www/dataMojo.png"  width="160px" align="right"/&gt;
+
+--
+### 建立在 data.table 包的一个扩展包
+
+--
+### 提高了数据整合清理的效率
+
+--
+### 提高了运算速度
+
+---
+class: middle
+
+# dataMojo R 包  &lt;img src="www/dataMojo.png"  width="160px" align="right"/&gt;
+
+&lt;img src="www/pic_RConf_2022.png"  width="800px" align="center"/&gt;
+
+---
+class: middle
+
+# dataMojo R 包  &lt;img src="www/dataMojo.png"  width="160px" align="right"/&gt;
+
+&lt;img src="www/pic_Rconf_2022_2.png"  width="800px" align="center"/&gt;
+
+---
+
+# 计算每行的百分比: `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+Github repo: https://github.com/jienagu/dataMojo
+
+
+
+```r
+library(data.table)
+test_df &lt;- data.frame( Group = c("A", "B", "C"), 
+                       Female = c(2,3,5),
+                       Male = c(10,11, 13))
+print(test_df)
+```
+
+```
+##   Group Female Male
+## 1     A      2   10
+## 2     B      3   11
+## 3     C      5   13
+```
+
+
+```r
+library(dataMojo)
+dataMojo::row_percent_convert(test_df, 
+                              cols_rowsum = c("Female", "Male"))
+```
+
+```
+##   Group    Female      Male
+## 1     A 0.1666667 0.8333333
+## 2     B 0.2142857 0.7857143
+## 3     C 0.2777778 0.7222222
+```
+
+
+---
+
+# 计算基于某一列合计的百分比:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+test_dt &lt;- data.table::data.table(
+      Question = c(rep("Good", 3), rep("OK", 3), rep("Bad", 3)),
+      Gender = c(rep("F", 4), rep("M", 5))
+    )
+print(test_dt)
+```
+
+```
+##    Question Gender
+## 1:     Good      F
+## 2:     Good      F
+## 3:     Good      F
+## 4:       OK      F
+## 5:       OK      M
+## 6:       OK      M
+## 7:      Bad      M
+## 8:      Bad      M
+## 9:      Bad      M
+```
+
+Github repo: https://github.com/jienagu/dataMojo
+
+---
+
+# 计算基于某一列合计的百分比:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 （续）：
+
+
+
+
+```r
+options(width = 80)
+dataMojo::pivot_percent_at(test_dt, 
+                          question_col = "Question", 
+                          aggregated_by_cols = "Gender")
+```
+
+```
+##    Gender Question.total Question.rate1valueGood Question.rate2valueOK
+## 1:      F              4                      75                    25
+## 2:      M              5                       0                    40
+##    Question.rate3valueBad Question.count1valueGood Question.count2valueOK
+## 1:                      0                        3                      1
+## 2:                     60                        0                      2
+##    Question.count3valueBad
+## 1:                       0
+## 2:                       3
+```
+
+Github repo: https://github.com/jienagu/dataMojo
+
+
+---
+
+# 计算基于多列合计的百分比:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+test_dt &lt;- data.table::data.table(
+      Question1 = c(rep("Good", 3), rep("OK", 3), rep("Bad", 3)),
+      Question2 = c(rep("Good", 2), rep("OK", 2), rep("Bad", 5)),
+      Gender = c(rep("F", 4), rep("M", 5))
+    )
+print(test_dt)
+```
+
+```
+##    Question1 Question2 Gender
+## 1:      Good      Good      F
+## 2:      Good      Good      F
+## 3:      Good        OK      F
+## 4:        OK        OK      F
+## 5:        OK       Bad      M
+## 6:        OK       Bad      M
+## 7:       Bad       Bad      M
+## 8:       Bad       Bad      M
+## 9:       Bad       Bad      M
+```
+
+Github repo: https://github.com/jienagu/dataMojo
+
+---
+
+# 计算基于多列合计的百分比:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 （续）：
+
+
+
+
+```r
+dataMojo::pivot_percent_at_multi(test_dt, 
+          question_col = c("Question1","Question2"), 
+          aggregated_by_cols = "Gender") 
+```
+
+```
+##    Gender Question1.total Question1.rate1valueGood
+## 1:      F               4                       75
+## 2:      M               5                        0
+##    Question1.rate2valueOK Question1.rate3valueBad
+## 1:                     25                       0
+## 2:                     40                      60
+##    Question1.count1valueGood Question1.count2valueOK
+## 1:                         3                       1
+## 2:                         0                       2
+##    Question1.count3valueBad Question2.total Question2.rate1valueGood
+## 1:                        0               4                       50
+## 2:                        3               5                        0
+##    Question2.rate2valueOK Question2.rate3valueBad
+## 1:                     50                       0
+## 2:                      0                     100
+##    Question2.count1valueGood Question2.count2valueOK
+## 1:                         2                       2
+## 2:                         0                       0
+##    Question2.count3valueBad
+## 1:                        0
+## 2:                        5
+```
+
+---
+
+# 基于条件的行延展:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+options(width =60)
+data("starwars_simple")
+starwars_simple[]
+```
+
+```
+##                                                                                                                     films
+## 1:                        The Empire Strikes Back, Revenge of the Sith, Return of the Jedi, A New Hope, The Force Awakens
+## 2: The Empire Strikes Back, Attack of the Clones, The Phantom Menace, Revenge of the Sith, Return of the Jedi, A New Hope
+##              name height skin_color eye_color    gender
+## 1: Luke Skywalker    172       fair      blue masculine
+## 2:          C-3PO    167       gold    yellow masculine
+```
+
+Github repo: https://github.com/jienagu/dataMojo
+
+---
+
+# 基于条件的行延展:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 （续）：
+
+
+
+
+```r
+dataMojo::row_expand_pattern(starwars_simple, 
+                             "films", 
+                             ", ", 
+                             "film")[]
+```
+
+```
+##               name height skin_color eye_color    gender
+##  1: Luke Skywalker    172       fair      blue masculine
+##  2: Luke Skywalker    172       fair      blue masculine
+##  3: Luke Skywalker    172       fair      blue masculine
+##  4: Luke Skywalker    172       fair      blue masculine
+##  5: Luke Skywalker    172       fair      blue masculine
+##  6:          C-3PO    167       gold    yellow masculine
+##  7:          C-3PO    167       gold    yellow masculine
+##  8:          C-3PO    167       gold    yellow masculine
+##  9:          C-3PO    167       gold    yellow masculine
+## 10:          C-3PO    167       gold    yellow masculine
+## 11:          C-3PO    167       gold    yellow masculine
+##                        film
+##  1: The Empire Strikes Back
+##  2:     Revenge of the Sith
+##  3:      Return of the Jedi
+##  4:              A New Hope
+##  5:       The Force Awakens
+##  6: The Empire Strikes Back
+##  7:    Attack of the Clones
+##  8:      The Phantom Menace
+##  9:     Revenge of the Sith
+## 10:      Return of the Jedi
+## 11:              A New Hope
+```
+
+
+---
+
+# 基于起始和终止日期的行延展:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+dt_dates_simple &lt;- data.table(
+  Start_Date = as.Date(c("2020-02-03", "2020-03-01") ),
+  End_Date = as.Date(c("2020-02-05", "2020-03-02") ),
+  group = c("A", "B")
+)
+dt_dates_simple[]
+```
+
+```
+##    Start_Date   End_Date group
+## 1: 2020-02-03 2020-02-05     A
+## 2: 2020-03-01 2020-03-02     B
+```
+
+Github repo: https://github.com/jienagu/dataMojo
+
+
+
+---
+
+# 基于起始和终止日期的行延展:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 （续）：
+
+
+```r
+row_expand_dates(dt_dates_simple, 
+                 "Start_Date", 
+                 "End_Date", 
+                 "Date")[]
+```
+
+```
+##    Start_Date   End_Date group       Date
+## 1: 2020-02-03 2020-02-05     A 2020-02-03
+## 2: 2020-02-03 2020-02-05     A 2020-02-04
+## 3: 2020-02-03 2020-02-05     A 2020-02-05
+## 4: 2020-03-01 2020-03-02     B 2020-03-01
+## 5: 2020-03-01 2020-03-02     B 2020-03-02
+```
+
+Github repo: https://github.com/jienagu/dataMojo
+
+---
+
+# 列选择:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+data("dt_dates")
+dt_dates &lt;- setDT(dt_dates)
+print(dt_dates)
+```
+
+```
+##    Start_Date   End_Date      Full_name First Name Last Name
+## 1: 2019-05-01 2019-06-01     Joe, Smith        Joe     Smith
+## 2: 2019-08-04 2019-08-09 Alex, Robinson       Alex  Robinson
+## 3: 2019-07-05 2019-08-14     David, Big      David       Big
+## 4: 2019-07-04 2019-07-05     Julia, Joe      Julia       Joe
+## 5: 2019-04-27 2019-05-10  Jessa, Oliver      Jessa    Oliver
+```
+
+
+```r
+dataMojo::select_cols(dt_dates, c("Start_Date", "Full_name"))
+```
+
+```
+##    Start_Date      Full_name
+## 1: 2019-05-01     Joe, Smith
+## 2: 2019-08-04 Alex, Robinson
+## 3: 2019-07-05     David, Big
+## 4: 2019-07-04     Julia, Joe
+## 5: 2019-04-27  Jessa, Oliver
+```
+
+---
+
+# 分裂多列:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+print(dt_dates)
+```
+
+```
+##    Start_Date   End_Date      Full_name First Name Last Name
+## 1: 2019-05-01 2019-06-01     Joe, Smith        Joe     Smith
+## 2: 2019-08-04 2019-08-09 Alex, Robinson       Alex  Robinson
+## 3: 2019-07-05 2019-08-14     David, Big      David       Big
+## 4: 2019-07-04 2019-07-05     Julia, Joe      Julia       Joe
+## 5: 2019-04-27 2019-05-10  Jessa, Oliver      Jessa    Oliver
+```
+
+
+```r
+dataMojo::str_split_col(dt_dates, by_col = "Full_name",
+              by_pattern = ", ",
+              match_to_names = c("First Name", "Last Name"))
+```
+
+```
+##    Start_Date   End_Date      Full_name First Name Last Name
+## 1: 2019-05-01 2019-06-01     Joe, Smith        Joe     Smith
+## 2: 2019-08-04 2019-08-09 Alex, Robinson       Alex  Robinson
+## 3: 2019-07-05 2019-08-14     David, Big      David       Big
+## 4: 2019-07-04 2019-07-05     Julia, Joe      Julia       Joe
+## 5: 2019-04-27 2019-05-10  Jessa, Oliver      Jessa    Oliver
+```
+
+
+---
+
+# 行筛选:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+筛选所有小于/等于/大于某一参数：
+
+
+```r
+data("dt_values")
+dataMojo::filter_all(dt_values, operator = "l", .2)
+```
+
+```
+##            A1         A2          A3
+## 1: 0.05785895 0.12946847 0.087393370
+## 2: 0.01923819 0.01278740 0.098913282
+## 3: 0.05195276 0.19132992 0.106693512
+## 4: 0.05032699 0.14571596 0.078407153
+## 5: 0.05952578 0.14576162 0.111872945
+## 6: 0.18180095 0.03566878 0.047573949
+## 7: 0.10973857 0.14381518 0.001265888
+```
+
+
+---
+
+# 行筛选:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+筛选任一（小于/等于/大于）某一参数：
+
+
+```r
+data("dt_values")
+dataMojo::filter_any(dt_values, operator = "l", .1)
+```
+
+```
+##                A1          A2         A3
+##   1: 0.0005183129 0.785432329 0.33682885
+##   2: 0.5106083730 0.089597210 0.35534382
+##   3: 0.0140479084 0.754373487 0.68909671
+##   4: 0.0646897766 0.659908085 0.33536504
+##   5: 0.0864958912 0.824531891 0.67044835
+##  ---                                    
+## 258: 0.0368269614 0.781635831 0.68857844
+## 259: 0.4405581164 0.008710776 0.06723523
+## 260: 0.0147206911 0.600409490 0.68254910
+## 261: 0.0277955788 0.508650963 0.28767138
+## 262: 0.9901734111 0.890964948 0.09758119
+```
+
+
+---
+
+# 填补缺失:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+
+```r
+data("dt_missing")
+dataMojo::fill_NA_with(dt_missing, 
+                       fill_cols = c("Full_name"), 
+                       fill_value = "pending")
+```
+
+```
+##    Start_Date   End_Date     Full_name
+## 1:       &lt;NA&gt; 2019-06-01       pending
+## 2: 2019-08-04 2019-08-09       pending
+## 3: 2019-07-05 2019-08-14    David, Big
+## 4: 2019-07-04 2019-07-05    Julia, Joe
+## 5: 2019-04-27 2019-05-10 Jessa, Oliver
+```
+
+
+
+---
+
+# 分组汇总:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+
+```r
+data("dt_groups")
+print(head(dt_groups))
+```
+
+```
+##           A1        A2 group2 group1
+## 1: 0.6312317 0.5596497      1      1
+## 2: 0.9343597 0.8214651      2      2
+## 3: 0.1394824 0.7866118      3      3
+## 4: 0.8566525 0.1973685      4      4
+## 5: 0.9658633 0.6671387      5      5
+## 6: 0.4725889 0.3767837      1      6
+```
+
+
+---
+
+# 分组汇总:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 1（续）：
+
+分组后，计算每组的`mean`, `medium`, `sum`, `min` 或 `max`
+
+
+```r
+data("dt_groups")
+dataMojo::dt_group_by(dt_groups, 
+            group_by_cols = c("group1", "group2"), 
+            summarize_at = "A1", 
+            operation = "mean")
+```
+
+```
+##     group1 group2 summary_col
+##  1:      1      1   0.4953336
+##  2:      2      2   0.4948892
+##  3:      3      3   0.5314195
+##  4:      4      4   0.4958035
+##  5:      5      5   0.4825304
+##  6:      6      1   0.5213521
+##  7:      7      2   0.5305957
+##  8:      8      3   0.4768201
+##  9:      9      4   0.4855223
+## 10:     10      5   0.5002411
+```
+
+
+---
+
+# 分组汇总:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 1（续）：
+
+分组后，列出每组的第一行 （`fetch_row = "first"`）或最后一行（`fetch_row = "last"`）
+
+
+```r
+data("dt_groups")
+dataMojo::get_row_group_by(dt_groups, 
+                 group_by_cols = c("group1", "group2"), 
+                 fetch_row = "first")
+```
+
+```
+##     group1 group2        A1        A2
+##  1:      1      1 0.6312317 0.5596497
+##  2:      2      2 0.9343597 0.8214651
+##  3:      3      3 0.1394824 0.7866118
+##  4:      4      4 0.8566525 0.1973685
+##  5:      5      5 0.9658633 0.6671387
+##  6:      6      1 0.4725889 0.3767837
+##  7:      7      2 0.3530244 0.6344632
+##  8:      8      3 0.2041025 0.7531322
+##  9:      9      4 0.8718080 0.6506606
+## 10:     10      5 0.3357608 0.9362194
+```
+
+
+---
+
+# 和`dplyr`速度比对:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+
+
+
+```r
+library(microbenchmark)
+library(ggplot2)
+res_group &lt;- microbenchmark(dataMojo_test(), dplyr_test(), times=100)
+print(res_group)
+```
+
+```
+## Unit: milliseconds
+##             expr       min       lq     mean   median       uq
+##  dataMojo_test()  7.344716 16.33156 27.48338 20.79464 31.52734
+##     dplyr_test() 19.164815 36.48314 52.15989 46.52692 58.84572
+##       max neval cld
+##  262.1225   100  a 
+##  139.9222   100   b
+```
+
+
+---
+
+# 和`dplyr`速度比对:  `dataMojo`  &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+
+
+```r
+ggplot2::autoplot(res_group)
+```
+
+![](R_Chinese_Conf_files/figure-html/slide12-2-1.png)&lt;!-- --&gt;
+
+
+---
+
+# 数据结构调整:宽变长 &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+data("dt_dates")
+print(head(dt_dates))
+```
+
+```
+##    Start_Date   End_Date      Full_name First Name Last Name
+## 1: 2019-05-01 2019-06-01     Joe, Smith        Joe     Smith
+## 2: 2019-08-04 2019-08-09 Alex, Robinson       Alex  Robinson
+## 3: 2019-07-05 2019-08-14     David, Big      David       Big
+## 4: 2019-07-04 2019-07-05     Julia, Joe      Julia       Joe
+## 5: 2019-04-27 2019-05-10  Jessa, Oliver      Jessa    Oliver
+```
+
+---
+
+# 数据结构调整:宽变长 &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 （续）：
+
+
+```r
+dataMojo::reshape_longer(dt_dates, 
+               keep_cols = "Full_name", 
+               by_pattern = "Date", 
+               label_cols = c("Date_Type"), 
+               value_cols = "Exact_date", 
+               fill_NA_with = NULL)
+```
+
+```
+##          Full_name  Date_Type Exact_date
+##  1:     Joe, Smith Start_Date 2019-05-01
+##  2: Alex, Robinson Start_Date 2019-08-04
+##  3:     David, Big Start_Date 2019-07-05
+##  4:     Julia, Joe Start_Date 2019-07-04
+##  5:  Jessa, Oliver Start_Date 2019-04-27
+##  6:     Joe, Smith   End_Date 2019-06-01
+##  7: Alex, Robinson   End_Date 2019-08-09
+##  8:     David, Big   End_Date 2019-08-14
+##  9:     Julia, Joe   End_Date 2019-07-05
+## 10:  Jessa, Oliver   End_Date 2019-05-10
+```
+
+
+---
+
+# 数据结构调整:长变宽 &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例：
+
+
+```r
+data("dt_long")
+print(head(dt_long))
+```
+
+```
+##         Full_name  Date_Type Exact_date
+## 1:     Joe, Smith Start_Date 2019-05-01
+## 2: Alex, Robinson Start_Date 2019-08-04
+## 3:     David, Big Start_Date 2019-07-05
+## 4:     Julia, Joe Start_Date 2019-07-04
+## 5:  Jessa, Oliver Start_Date 2019-04-27
+## 6:     Joe, Smith   End_Date 2019-06-01
+```
+
+
+---
+
+# 数据结构调整:长变宽 &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+实例 （续）：
+
+
+```r
+dataMojo::reshape_wider(dt_long, 
+              keep_cols = c("Full_name"), 
+              col_lable = c("Date_Type"), 
+              col_value = "Exact_date")
+```
+
+```
+##         Full_name Start_Date   End_Date
+## 1: Alex, Robinson 2019-08-04 2019-08-09
+## 2:     David, Big 2019-07-05 2019-08-14
+## 3:  Jessa, Oliver 2019-04-27 2019-05-10
+## 4:     Joe, Smith 2019-05-01 2019-06-01
+## 5:     Julia, Joe 2019-07-04 2019-07-05
+```
+
+
+
+---
+
+# shiny应用 &lt;img src="www/dataMojo.png"  width="100px" align="right"/&gt;
+
+
+https://github.com/jienagu/demo_mojo_app
+
+
+&lt;img src="www/dataMojo_demo.gif"  width="800px" align="center"/&gt;
+
+
+---
+class: middle
+
+# 为开源社区贡献
+
+&lt;img src="www/R_welcome.jpeg" alt="Example" width="350" height="500"&gt;
+&lt;img src="www/Welcome2.png" alt="Example2" width="380" height="400"&gt;
+
+---
+class: middle
+
+# 谢谢
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
