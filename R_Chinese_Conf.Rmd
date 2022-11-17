@@ -42,6 +42,16 @@ class: middle
 
 ---
 
+# shiny应用 <img src="www/dataMojo.png"  width="100px" align="right"/>
+
+
+https://github.com/jienagu/demo_mojo_app
+
+
+<img src="www/dataMojo_demo.gif"  width="800px" align="center"/>
+
+---
+
 # 计算每行的百分比: `dataMojo`  <img src="www/dataMojo.png"  width="100px" align="right"/>
 
 Github repo: https://github.com/jienagu/dataMojo
